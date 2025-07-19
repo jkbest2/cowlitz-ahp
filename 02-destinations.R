@@ -1,4 +1,4 @@
-### Define AHP Goal object
+### Define AHP Goal object ----------------------------------------------------
 ahp_destinations <- c(
   "Bremer Bridge", "Broodstock", "Cispus", "Lower River", "Mortality",
   "Packwood", "Riffe Lake", "Scanewa", "Surplus", "Tilton"
@@ -61,7 +61,7 @@ only_transport <- function(goal) {
 
 ### Spring Chinook ------------------------------------------------------------
 ## Non-vectorized function to determine AHP goals by tag, lifestage, and date
-.sprchk_dest <- function(tag, lifestage, date) {
+.dest_sprchk <- function(tag, lifestage, date) {
   if (lifestage %in% c("Jack", "Adult")) {
     ## Assuming here that UM + PIT is a wild fish from FCE trials
     if (tag %in% c("UM", "UM + PIT Tag")) {
@@ -88,14 +88,101 @@ only_transport <- function(goal) {
     } else {
       dest <- ahp_goal(Broodstock = 1)
     }
+  } else {
+    dest <- ahp_goal_na()
   }
   dest
 }
 
 ## Vectorize above function
-sprchk_dest <- function(tag, lifestage, date) {
+dest_sprchk <- function(tag, lifestage, date) {
   pmap(
     list(tag = tag, lifestage = lifestage, date = date),
-    .sprchk_dest
+    .dest_sprchk
   )
+}
+
+### Fall Chinook --------------------------------------------------------------
+.dest_fallchk <- function(tag) {
+  if (tag == "Ad only") {
+    dest <- ahp_goal(Tilton = 0.75, `Bremer Bridge` = 0.25, Broodstock = TRUE)
+  } else if (tag == "AD + CWT") {
+    dest <- ahp_goal(Broodstock = 1)
+  } else if (tag %in% c("UM", "UM + BWT")) {
+    dest <- ahp_goal(`Bremer Bridge` = 1, Broodstock = 1 / 3)
+  } else {
+    dest <- ahp_goal_na()
+  }
+  dest
+}
+
+dest_fallchk <- function(tag, ...) {
+  map(tag, .fallchk_dest)
+}
+
+### Coho
+.dest_coho <- function(tag) {
+  if (tag == "Ad only") {
+    dest <- ahp_goal(Tilton = 0.75, `Bremer Bridge` = 0.25, Broodstock = TRUE)
+  } else if (tag == "AD + CWT") {
+    ## Separate goal for "flow/spill", not sure how to account for this
+    dest <- ahp_goal(Packwood = 0.25, Cispus = 0.25, Scanewa = 0.5, Broodstock = TRUE)
+  } else if (tag == "UM + BWT") {
+    dest <- ahp_goal(`Bremer Bridge` = 1)
+  } else if (tag == "UM") {
+    dest <- ahp_goal(Scanewa = 1, Broodstock = TRUE)
+  } else {
+    dest <- ahp_goal_na()
+  }
+  dest
+}
+
+dest_coho <- function(tag, ...) {
+  map(tag, .dest_coho)
+}
+
+### Winter steelhead ----------------------------------------------------------
+## FIXME Not sure what to do with RV tagged fish
+.dest_winsth <- function(tag) {
+  if (tag == "Ad only") {
+    ## Hatchery
+    dest <- ahp_goal(Broodstock = 1)
+  } else if (tag == "AD + CWT") {
+    ## Integrated
+    dest <- ahp_goal(Packwood = 0.5, Cispus = 0.5, Broodstock = TRUE)
+  } else if (tag %in% c("AD + LV", "AD+LV+PIT")) {
+    ## Integrated (Tilton)
+    dest <- ahp_goal(Tilton = 0.75, `Bremer Bridge` = 0.25, Broodstock = TRUE)
+  } else if (tag %in% c("UM + DORSAL CWT", "UM + DOR + PIT")) {
+    ## Wild
+    dest <- ahp_goal(`Bremer Bridge` = 1)
+  } else if (tag %in% c("UM + BWT", "UM + BWT + PIT")) {
+    dest <- ahp_goal(Scanewa = 1, Broodstock = TRUE)
+  } else if (tag %in% c("UM", "UM + PIT Tag")) {
+    dest <- ahp_goal(`Bremer Bridge` = 1, Broodstock = TRUE)
+  } else {
+    dest <- ahp_goal_na()
+  }
+  dest
+}
+
+dest_winsth <- function(tag, ...) {
+  map(tag, .dest_winsth)
+}
+
+### Summer Steelhead ----------------------------------------------------------
+.dest_sumsth <- function(tag) {
+  if (tag %in% c("Ad only", "AD + PIT Tag", "AD + OP + PIT")) {
+    dest <- ahp_goal(Broodstock = 1)
+  } else if (tag %in% c("UM", "OP RET")) {
+    ## Assume that OP RET means no other marks, so also UM
+    dest <- ahp_goal(`Lower River` = 1, Broodstock = TRUE)
+  } else {
+    dest <- ahp_goal_na
+  }
+  dest
+}
+
+dest_sumsth <- function(tag, ...) {
+  map(tag, .dest_sumsth)
 }
