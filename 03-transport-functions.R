@@ -38,6 +38,12 @@ summarize_transport <- function(species, ahp) {
       count = sum(count, na.rm = TRUE),
       across(`Bremer Bridge`:Tilton, \(x) sum(x, na.rm = TRUE)),
       .by = c(lifestage, tag, origin, destination)
+    ) |>
+    filter(
+      destination %in% c(
+        "Bremer Bridge", "Cispus", "Lower River",
+        "Packwood", "Riffe Lake", "Scanewa", "Tilton"
+      )
     )
 
   ## Summary of fish that were transported
