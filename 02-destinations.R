@@ -78,7 +78,11 @@ only_transport <- function(goal) {
     } else if (tag %in% c("AD + CWT")) {
       dest <- ahp_goal(Broodstock = 1)
     } else if (tag %in% c("AD + RV", "AD + RV + OP RET")) {
-      dest <- ahp_goal(Surplus = 1)
+      if (month(date) < 7) {
+        dest <- ahp_goal(`Lower River` = 1)
+      } else {
+        dest <- ahp_goal(Surplus = 1)
+      }
     } else {
       dest <- ahp_goal_na()
     }
@@ -117,7 +121,7 @@ dest_sprchk <- function(tag, lifestage, date) {
 }
 
 dest_fallchk <- function(tag, ...) {
-  map(tag, .fallchk_dest)
+  map(tag, .dest_fallchk)
 }
 
 ### Coho
@@ -173,7 +177,7 @@ dest_winsth <- function(tag, ...) {
 ### Summer Steelhead ----------------------------------------------------------
 .dest_sumsth <- function(tag) {
   if (tag %in% c("Ad only", "AD + PIT Tag", "AD + OP + PIT")) {
-    dest <- ahp_goal(Broodstock = 1)
+    dest <- ahp_goal(`Lower River` = 1, Broodstock = 1)
   } else if (tag %in% c("UM", "OP RET")) {
     ## Assume that OP RET means no other marks, so also UM
     dest <- ahp_goal(`Lower River` = 1, Broodstock = TRUE)
