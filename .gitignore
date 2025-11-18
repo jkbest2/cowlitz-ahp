@@ -1,2 +1,4 @@
 figs/
 *.rds
+*_files/
+*.html

@@ -1,24 +1,35 @@
 ### Define AHP Goal object ----------------------------------------------------
 ahp_destinations <- c(
-  "Bremer Bridge", "Broodstock", "Cispus", "Lower River", "Mortality",
-  "Packwood", "Riffe Lake", "Scanewa", "Surplus", "Tilton"
+  "Bremer Bridge",
+  "Broodstock",
+  "Cispus",
+  "Lower River",
+  "Mortality",
+  "Packwood",
+  "Riffe Lake",
+  "Scanewa",
+  "Surplus",
+  "Tilton"
 )
 
 ahp_goal <- function(...) {
   new_goals <- list(...)
   stopifnot(all(names(new_goals) %in% ahp_destinations))
-  goal <- modifyList(list(
-    `Bremer Bridge` = 0,
-    `Broodstock` = 0,
-    `Cispus` = 0,
-    `Lower River` = 0,
-    `Mortality` = 0,
-    `Packwood` = 0,
-    `Riffe Lake` = 0,
-    `Scanewa` = 0,
-    `Surplus` = 0,
-    `Tilton` = 0
-  ), new_goals)
+  goal <- modifyList(
+    list(
+      `Bremer Bridge` = 0,
+      `Broodstock` = 0,
+      `Cispus` = 0,
+      `Lower River` = 0,
+      `Mortality` = 0,
+      `Packwood` = 0,
+      `Riffe Lake` = 0,
+      `Scanewa` = 0,
+      `Surplus` = 0,
+      `Tilton` = 0
+    ),
+    new_goals
+  )
   structure(
     goal,
     class = "ahp_goal"
@@ -53,8 +64,13 @@ only_transport <- function(goal) {
     }
     stopifnot(isa(goal, "ahp_goal"))
     goal[c(
-      "Bremer Bridge", "Cispus", "Lower River", "Packwood", "Riffe Lake",
-      "Scanewa", "Tilton"
+      "Bremer Bridge",
+      "Cispus",
+      "Lower River",
+      "Packwood",
+      "Riffe Lake",
+      "Scanewa",
+      "Tilton"
     )]
   })
 }
@@ -64,13 +80,15 @@ only_transport <- function(goal) {
 .dest_sprchk <- function(tag, lifestage, date) {
   if (lifestage %in% c("Jack", "Adult")) {
     ## Assuming here that UM + PIT is a wild fish from FCE trials
-    if (tag %in% c("UM", "UM + PIT Tag")) {
+    if (tag %in% c("UM", "UM + PIT Tag", "OP RET")) {
       dest <- ahp_goal(Scanewa = 1)
     } else if (tag %in% c("Ad only", "UM + BWT")) {
       if (month(date) < 7) {
         dest <- ahp_goal(
-          Packwood = 0.25, Cispus = 0.25,
-          Scanewa = 0.5, Broodstock = TRUE
+          Packwood = 0.25,
+          Cispus = 0.25,
+          Scanewa = 0.5,
+          Broodstock = TRUE
         )
       } else {
         dest <- ahp_goal(Packwood = 0.5, Cispus = 0.5, Broodstock = TRUE)
@@ -130,7 +148,12 @@ dest_fallchk <- function(tag, ...) {
     dest <- ahp_goal(Tilton = 0.75, `Bremer Bridge` = 0.25, Broodstock = TRUE)
   } else if (tag == "AD + CWT") {
     ## Separate goal for "flow/spill", not sure how to account for this
-    dest <- ahp_goal(Packwood = 0.25, Cispus = 0.25, Scanewa = 0.5, Broodstock = TRUE)
+    dest <- ahp_goal(
+      Packwood = 0.25,
+      Cispus = 0.25,
+      Scanewa = 0.5,
+      Broodstock = TRUE
+    )
   } else if (tag == "UM + BWT") {
     dest <- ahp_goal(`Bremer Bridge` = 1)
   } else if (tag == "UM") {

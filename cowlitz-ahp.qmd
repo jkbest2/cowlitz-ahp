@@ -1,0 +1,55 @@
+---
+title: "Cowlitz AHP Deviations"
+author: "John Best"
+format: revealjs
+---
+
+
+```{r setup, echo=FALSE, warnings=FALSE, messages=FALSE}
+library(tidyverse)
+
+source(here::here("01-identify-origin.R"))
+source(here::here("02-destinations.R"))
+source(here::here("03-transport-functions.R"))
+
+ahp <- read_rds(here::here("data", "ahp_df.rds"))
+```
+
+## Fall Chinook
+
+![](figs/fall-chk-ahp-table.png)
+
+## Fall Chinook
+
+```{r fallchinook}
+fallchk_tr <- summarize_transport("Fall Chinook", ahp)
+plot_ahp_tr(fallchk_tr)
+```
+
+## Spring Chinook
+
+```{r springchinook}
+sprchk_tr <- summarize_transport("Spring Chinook", ahp)
+plot_ahp_tr(sprchk_tr)
+```
+
+## Coho
+
+```{r coho}
+coho_tr <- summarize_transport("Coho", ahp)
+plot_ahp_tr(coho_tr)
+```
+
+## Winter Steelhead
+
+```{r wintersth}
+winsth_tr <- summarize_transport("Stlhd Winter", ahp)
+plot_ahp_tr(winsth_tr)
+```
+
+## Summer Steelhead
+
+```{r summersth}
+sumsth_tr <- summarize_transport("Stlhd Summer", ahp)
+plot_ahp_tr(sumsth_tr)
+```
