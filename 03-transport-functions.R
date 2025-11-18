@@ -1,5 +1,6 @@
 summarize_transport <- function(species, ahp) {
-  dest_fn <- switch(species,
+  dest_fn <- switch(
+    species,
     "Spring Chinook" = dest_sprchk,
     "Fall Chinook" = dest_fallchk,
     "Coho" = dest_coho,
@@ -26,7 +27,12 @@ summarize_transport <- function(species, ahp) {
       transport = only_transport(ahp_dest)
     ) |>
     select(
-      lifestage, tag, origin, destination, ahp_dest, transport,
+      lifestage,
+      tag,
+      origin,
+      destination,
+      ahp_dest,
+      transport,
       count
     ) |>
     unnest_wider(transport) |>
@@ -40,10 +46,16 @@ summarize_transport <- function(species, ahp) {
       .by = c(lifestage, tag, origin, destination)
     ) |>
     filter(
-      destination %in% c(
-        "Bremer Bridge", "Cispus", "Lower River",
-        "Packwood", "Riffe Lake", "Scanewa", "Tilton"
-      )
+      destination %in%
+        c(
+          "Bremer Bridge",
+          "Cispus",
+          "Lower River",
+          "Packwood",
+          "Riffe Lake",
+          "Scanewa",
+          "Tilton"
+        )
     )
 
   ## Summary of fish that were transported
@@ -83,8 +95,10 @@ plot_ahp_tr <- function(tr_df) {
     ggplot(
       aes(
         x = destination,
-        y = tr_count, yend = goal_count,
-        color = origin, shape = lifestage
+        y = tr_count,
+        yend = goal_count,
+        color = origin,
+        shape = lifestage
       )
     ) +
     geom_segment(
@@ -92,10 +106,123 @@ plot_ahp_tr <- function(tr_df) {
       position = position_dodge(width = 0.4)
     ) +
     geom_point(position = position_dodge(width = 0.4)) +
-    geom_point(aes(y = goal_count), shape = "_", position = position_dodge(width = 0.4)) +
+    geom_point(
+      aes(y = goal_count),
+      shape = "_",
+      position = position_dodge(width = 0.4)
+    ) +
     scale_y_continuous(limits = c(0, NA), expand = expansion(c(0, 0.025))) +
     facet_wrap(~tag, scales = "free") +
     labs(x = "Destination", y = "Count", color = "Origin", shape = "Life stage")
 }
 
-ggsave(here::here("figs", "sprchk_transport.png"), width = 12, height = 8)
+summarize_byhaul <- function(species, ahp, bytag = FALSE) {
+  dest_fn <- switch(
+    species,
+    "Spring Chinook" = dest_sprchk,
+    "Fall Chinook" = dest_fallchk,
+    "Coho" = dest_coho,
+    "Stlhd Winter" = dest_winsth,
+    "Stlhd Summer" = dest_sumsth
+  )
+  n_missing <- ahp |>
+    ## Need to use injection (!!) here to avoid comparing the species column to
+    ## itself
+    filter(species == !!species) |>
+    filter(is.na(species) | is.na(lifestage) | is.na(tag) | is.na(count)) |>
+    nrow()
+  ## Filter out desired species, get origin and AHP destination distributions
+
+  ahp2 <- ahp |>
+    filter(
+      species == !!species,
+      !is.na(lifestage),
+      !is.na(tag),
+      !is.na(count)
+    ) |>
+    mutate(
+      origin = id_origin(species, tag),
+      ahp_dest = dest_fn(tag, lifestage, hold_date),
+      transport = only_transport(ahp_dest)
+    ) |>
+    select(
+      haul_date,
+      lifestage,
+      tag,
+      origin,
+      destination,
+      ahp_dest,
+      transport,
+      count
+    ) |>
+    arrange(destination, origin, lifestage, haul_date) |>
+    unnest_wider(transport) |>
+    select(-ahp_dest) |>
+    ## Calculate the number expected to be transported to each destination
+    mutate(
+      across(`Bremer Bridge`:Tilton, \(x) x * count)
+    )
+
+  ## Summary of fish that were transported
+  tr <- ahp2 |>
+    summarize(
+      count = sum(count),
+      .by = c(haul_date, lifestage, origin, destination)
+    ) |>
+    mutate(
+      count = cumsum(count),
+      .by = c(lifestage, origin, destination)
+    )
+  # select(haul_date, lifestage, tag, origin, destination, count)
+
+  goal <- ahp2 |>
+    select(haul_date, lifestage, origin, `Bremer Bridge`:Tilton) |>
+    pivot_longer(
+      `Bremer Bridge`:Tilton,
+      names_to = "destination",
+      values_to = "count"
+    ) |>
+    arrange(destination, origin, lifestage, haul_date) |>
+    summarize(
+      count = sum(count),
+      .by = c(haul_date, lifestage, origin, destination)
+    ) |>
+    mutate(
+      count = cumsum(count),
+      .by = c(lifestage, origin, destination)
+    ) |>
+    filter(count > 0)
+
+  list(
+    transport = tr,
+    goal = goal
+  )
+}
+
+filter_ahp_bh <- function(bh, ...) {
+  transport <- bh$transport |>
+    filter(...)
+  goal <- bh$goal |>
+    filter(...)
+  list(
+    transport = transport,
+    goal = goal
+  )
+}
+
+plot_ahp_bh <- function(bh) {
+  ggplot(
+    bh$transport,
+    aes(
+      x = haul_date,
+      y = count,
+      color = destination
+    )
+  ) +
+    geom_step(data = bh$goal, linetype = "dashed") +
+    geom_step() +
+    scale_x_date() +
+    scale_y_continuous(limits = c(0, NA), expand = expansion(c(0, 0.025))) +
+    facet_grid(origin ~ lifestage, scales = "free_y") +
+    labs(x = "Haul Date", y = "Count", color = "Destination")
+}
