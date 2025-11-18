@@ -4,7 +4,6 @@ author: "John Best"
 format: revealjs
 ---
 
-
 ```{r setup, echo=FALSE, warnings=FALSE, messages=FALSE}
 library(tidyverse)
 
@@ -15,41 +14,160 @@ source(here::here("03-transport-functions.R"))
 ahp <- read_rds(here::here("data", "ahp_df.rds"))
 ```
 
+# Seasonal
+
 ## Fall Chinook
 
 ![](figs/fall-chk-ahp-table.png)
 
 ## Fall Chinook
 
-```{r fallchinook}
+```{r fallchinook-seas}
 fallchk_tr <- summarize_transport("Fall Chinook", ahp)
 plot_ahp_tr(fallchk_tr)
 ```
 
 ## Spring Chinook
 
-```{r springchinook}
+```{r springchinook-seas}
 sprchk_tr <- summarize_transport("Spring Chinook", ahp)
 plot_ahp_tr(sprchk_tr)
 ```
 
 ## Coho
 
-```{r coho}
+```{r coho-seas}
 coho_tr <- summarize_transport("Coho", ahp)
 plot_ahp_tr(coho_tr)
 ```
 
 ## Winter Steelhead
 
-```{r wintersth}
+```{r wintersth-seas}
 winsth_tr <- summarize_transport("Stlhd Winter", ahp)
 plot_ahp_tr(winsth_tr)
 ```
 
 ## Summer Steelhead
 
-```{r summersth}
+```{r summersth-seas}
 sumsth_tr <- summarize_transport("Stlhd Summer", ahp)
 plot_ahp_tr(sumsth_tr)
+```
+
+# By haul
+
+## Fall Chinook
+
+```{r fallchinook-byhaul}
+fallchk_bh <- summarize_byhaul("Fall Chinook", ahp)
+plot_ahp_bh(fallchk_bh)
+```
+
+## Fall Chinook
+
+```{r fall-chinook-byhaul-adulthor}
+fallchk_bh |>
+  filter_ahp_bh(
+    lifestage == "Adult",
+    origin == "Hatchery (HOR)"
+  ) |>
+  plot_ahp_bh()
+```
+
+## Spring Chinook
+
+```{r springchinook-byhaul}
+sprchk_bh <- summarize_byhaul("Spring Chinook", ahp)
+plot_ahp_bh(sprchk_bh)
+```
+
+## Spring Chinook
+
+```{r spring-chinook-byhaul-adulthor}
+sprchk_bh |>
+  filter_ahp_bh(
+    lifestage == "Adult",
+    origin == "Hatchery (HOR)"
+  ) |>
+  plot_ahp_bh()
+```
+
+## Spring Chinook
+
+```{r spring-chinook-byhaul-jackhor}
+sprchk_bh |>
+  filter_ahp_bh(
+    lifestage == "Jack",
+    origin == "Hatchery (HOR)"
+  ) |>
+  plot_ahp_bh()
+```
+
+## Spring Chinook
+
+```{r spring-chinook-byhaul-adultnor}
+sprchk_bh |>
+  filter_ahp_bh(
+    lifestage == "Adult",
+    origin == "Wild (NOR)"
+  ) |>
+  plot_ahp_bh()
+```
+
+## Coho
+
+```{r coho-byhaul}
+coho_bh <- summarize_byhaul("Coho", ahp)
+plot_ahp_bh(coho_bh)
+```
+
+## Coho
+
+```{r coho-byhaul-adulthor}
+coho_bh |>
+  filter_ahp_bh(
+    lifestage == "Adult",
+    origin == "Hatchery (HOR)"
+  ) |>
+  plot_ahp_bh()
+```
+
+## Coho
+
+```{r coho-byhaul-adultint}
+coho_bh |>
+  filter_ahp_bh(
+    lifestage == "Adult",
+    origin == "Integrated (H/W)"
+  ) |>
+  plot_ahp_bh()
+```
+
+## Winter Steelhead
+
+```{r wintersth-byhaul}
+winsth_bh <- summarize_byhaul("Stlhd Winter", ahp) |>
+  ## FIXME: Need to find out where these NA origins are coming from
+  filter_ahp_bh(!is.na(origin))
+plot_ahp_bh(winsth_bh)
+```
+
+## Winter Steelhead
+
+```{r wintersth-byhaul-adultint}
+winsth_bh |>
+  filter_ahp_bh(
+    lifestage == "Adult",
+    origin == "Integrated (H/W)"
+  ) |>
+  plot_ahp_bh()
+```
+
+
+## Summer Steelhead
+
+```{r summersth-byhaul}
+sumsth_bh <- summarize_byhaul("Stlhd Summer", ahp)
+plot_ahp_bh(sumsth_bh)
 ```
