@@ -1,8 +1,7 @@
 library(tidyverse)
 
 class_fchk_origin <- function(tag) {
-  orgn <- switch(
-    tag,
+  orgn <- switch(tag,
     "Ad only" = "Hatchery (HOR)",
     "AD + CWT" = "Integrated (H/W)",
     "UM" = ,
@@ -23,7 +22,7 @@ fchk_ahp <- read_rds(here::here("data", "ahp_df.rds")) |>
   )
 
 fchk_goals <- tribble(
-  ~ origin, ~ destination, ~ goal, ~ nobrood,
+  ~origin, ~destination, ~goal, ~nobrood,
   "Hatchery (HOR)", "Tilton Gust Backstrom Park", "> 75%", TRUE,
   "Hatchery (HOR)", "Bremer Bridge", "< 25%", TRUE,
   "Hatchery (HOR)", "Broodstock", "Broodstock", FALSE,
@@ -32,20 +31,20 @@ fchk_goals <- tribble(
   "Wild (NOR)", "Tilton Gust Backstrom Park", "0%", TRUE,
   "Wild (NOR)", "Broodstock", "Collect at 1 in 3", FALSE
 ) |>
-mutate(
-  origin = factor(
-    origin,
-    levels = c("Hatchery (HOR)", "Integrated (H/W)", "Wild (NOR)")
-  ),
-  destination = factor(
-    destination,
-    levels = c("Tilton Gust Backstrom Park", "Bremer Bridge", "Broodstock")
+  mutate(
+    origin = factor(
+      origin,
+      levels = c("Hatchery (HOR)", "Integrated (H/W)", "Wild (NOR)")
+    ),
+    destination = factor(
+      destination,
+      levels = c("Tilton Gust Backstrom Park", "Bremer Bridge", "Broodstock")
+    )
   )
-)
 
 fallchk_df <- fchk_ahp |>
   summarize(
-    n_fish = sum(total_fish_count),
+    n_fish = sum(count),
     .by = c(origin, destination)
   ) |>
   arrange(origin) |>
@@ -75,3 +74,10 @@ fallchk_df <- fchk_ahp |>
   ) |>
   select(origin, destination, realized, goal) |>
   arrange(origin, destination)
+
+fallchk_df <- ahp |>
+  filter(fishdescription == "Fall Chinook") |>
+  mutate(
+    origin = id_origin(fishdescription, tag),
+    ahp_dest = map(tag, fallchk_dest)
+  )
